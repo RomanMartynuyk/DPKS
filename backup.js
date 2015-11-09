@@ -18,11 +18,10 @@ $(document).ready(function(){
     var number_flag = false;
     var dot_flag = false;
 
-    var open_brackets = false;
-    var close_brackets = false;
+    var brackets_count = 0;
+    var last_br_index = [];
     var open = 0;
     var close = 0;
-    var last_close = false;
     var error_log = [];
 
     $.merge(start_elements,numbers);
@@ -34,14 +33,13 @@ $(document).ready(function(){
         error_log = [];
         open_brackets_count = 0;
         close_brackets_count = 0;
+        brackets_count = 0;
+        last_br_index = [];
         number_flag = false;
         dot_flag = false;
         variable_flag = false;
-        close_brackets = false;
-        open_brackets = false;
         open = 0;
         close = 0;
-        last_close = false;
         var input_data = input.val().toLowerCase().split('');
         var prev = '';
         var tmp = '';
@@ -54,7 +52,8 @@ $(document).ready(function(){
                 }else{
                     tmp = getType(input_data[i]);
                     if(input_data[i]=='('){
-                        open_brackets = true;
+                        brackets_count++;
+                        last_br_index.push(i);
                     }
                 }
             }else{
@@ -68,8 +67,14 @@ $(document).ready(function(){
                         if($.inArray(input_data[i],graph)==-1){
                             error_log.push('Элемент <span class="element">"'+input_data[i]+'"</span> на позиции '+(i+1)+'<span class="error"> неверный </span><br>');
                         }
+
                         if(input_data[i]==')'){
-                            last_close = true;
+                            if(brackets_count>0){
+                                brackets_count--;
+                                last_br_index.pop();
+                            }else{
+                                error_log.push('Скобка <span class="element">"'+input_data[i]+'"</span> на последней позиции '+(i+1)+'<span class="error"> не имеет открывающую </span><br>');
+                            }
                         }
                     }
                 }else{
@@ -77,7 +82,6 @@ $(document).ready(function(){
                     if(prev == 'variable'){
                         variable_flag = true;
                     }
-
                     if(prev == 'numbers'){
                         number_flag = true;
                     }
@@ -102,23 +106,17 @@ $(document).ready(function(){
                         }
                     }
 
+                    /*Brackets*/
                     if(input_data[i]=='('){
-                        if(open_brackets){
-                            open++;
-                        }
-                        open_brackets = true;
+                        brackets_count++;
+                        last_br_index.push(i);
                     }
-
                     if(input_data[i]==')'){
-                        if(!open_brackets){
-                            error_log.push('<span class="error">Нет открытой дужки</span> для <span class="element">"'+input_data[i]+'"</span> на позиции '+(i+1)+'<br>');
+                        if(brackets_count>0){
+                            brackets_count--;
+                            last_br_index.pop();
                         }else{
-                            if(open==0){
-                                open_brackets = false;
-                            }else{
-                                open--;
-                            }
-
+                            error_log.push('Скобка <span class="element">"'+input_data[i]+'"</span> на позиции '+(i+1)+'<span class="error"> не имеет открывающую </span><br>');
                         }
                     }
 
@@ -146,15 +144,19 @@ $(document).ready(function(){
         //Brackets check
         if(close_brackets_count>open_brackets_count){
             error_log.push('Элементов <span class="element">")"</span> <span class="error">больше</span> чем <span class="element">"("</span> на '+ (close_brackets_count-open_brackets_count)+'<br>');
-            if(last_close){
-                error_log.push('<span class="error">Нет открытой дужки</span> для <span class="element">")"</span> в конце<br>');
-            }
         }else if(open_brackets_count>close_brackets_count){
             error_log.push('Элементов <span class="element">"("</span> <span class="error">больше</span> чем <span class="element">")"</span> на ' + (open_brackets_count-close_brackets_count)+'<br>');
-            error_log.push('<span class="error">Нет закрытой дужки</span> для <span class="element">"("</span><br>');
-
         }
-        $('#result').html(error_log);
+        if(last_br_index.length>0){
+            error_log.push('Нет закрывающейся скобки для '+last_br_index + '<br>');
+        }
+        if(error_log.length>0){
+            $('#result').html(error_log);
+        }else{
+            $('#result').html('No errors');
+            parallel(input_data);
+        }
+
     });
 
     function getType(value){
@@ -199,6 +201,105 @@ $(document).ready(function(){
                 break;
         }
     }
-});/**
- * Created by Roman on 11/8/2015.
- */
+
+    function parallel(data){
+        var brackets = getBrackets(data);
+        getBracketsOperations(brackets);
+        for(var i=0;i<brackets.length;i++){
+            console.log(brackets[i].join(''));
+        }
+    }
+
+
+    /*
+     Get data into brackets
+     Example: (2*(a+b)-(a-b/2))+2
+     (a-b/2)
+     (a+b)
+     (2*(a+b)-(a-b/2))
+
+     return array of brackets
+     */
+    function getBrackets(data){
+        var open_br = [];
+        var close_br = [];
+        var result = [];
+
+        for(var i=0;i<data.length;i++){
+            if(data[i]=='('){
+                open_br.push(i)
+            }else if(data[i]==')'){
+                close_br.push(i);
+            }
+        }
+        var count = open_br.length;
+
+        for(var i=0;i<count;i++){
+            var z = 0;
+            for(var j=0;j<close_br.length;j++){
+                if(close_br[j]>open_br[open_br.length-1]){
+                    z = close_br[j];
+                    break;
+                }
+            }
+            result.push(data.slice(open_br[open_br.length-1],z+1));
+
+            //remove elements
+            open_br.pop();
+            var index = close_br.indexOf(z);
+            if (index > -1) {
+                close_br.splice(index, 1);
+            }
+        }
+        return result;
+    }
+
+    function getBracketsOperations(brackets){
+        var operation_position = function(){
+            id: 0;
+            operation: [];
+            pos: [];
+        };
+        var op_arrays = [];
+        for (var i = 0; i < brackets.length;i++){
+            var tmp = new operation_position;
+            tmp.id = i;
+            tmp.pos = [];
+            tmp.operation = [];
+            for(var j=0;j<brackets[i].length;j++){
+                if($.inArray(brackets[i][j],operations)>=0){
+                    tmp.pos.push(j);
+                    tmp.operation.push(brackets[i][j]);
+                }
+            }
+            op_arrays.push(tmp);
+        }
+        console.log(op_arrays);
+
+        var operations_priority = [];
+
+        for(var i = 0; i<op_arrays.length;i++){
+            var prev = '';
+            var tmp = '';
+            var next = '';
+            var tmp_arr = new Array(op_arrays.length);
+            var count = 1;
+            var max_count = 1;
+            for (var j = 1; j<op_arrays[i].pos.length-1;j++){
+                tmp = op_arrays[i].operation[j];
+                prev = op_arrays[i].operation[j-1];
+                next = op_arrays[i].operation[j+1];
+                if(tmp=="-"||tmp=="+"){
+                    if(prev=="-"||prev=="+"){
+                        tmp_arr[j] = count++;
+                        tmp_arr[j-1] = count;
+                    }else if(prev=="*"||prev=="/"){
+                        tmp_arr[j] = count;
+                        tmp_arr[j-1] = count++;
+                    }
+                }
+            }
+            operations_priority.push(tmp_arr);
+        }
+    }
+});

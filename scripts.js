@@ -208,7 +208,6 @@ $(document).ready(function(){
         for(var i=0;i<brackets.length;i++){
             console.log(brackets[i].join(''));
         }
-        console.log(brackets);
     }
 
 
@@ -273,8 +272,16 @@ $(document).ready(function(){
             op_arrays.push(tmp);
         }
         console.log(op_arrays);
+
+        var simple = ['+','-'];
+        var mul = ['*','/'];
+
+        for(var i = 0; i <op_arrays.length;i++){
+            for(var j = 0; j <op_arrays[i].length;j++){
+                if(op_arrays[i][j]=='+' || op_arrays[i][j]=='-'){
+
+                }
+            }
+        }
     }
-
-
-
 });

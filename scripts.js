@@ -203,9 +203,24 @@ $(document).ready(function(){
     }
 
     function parallel(data){
-        getBrackets(data);
+        var brackets = getBrackets(data);
+        getBracketsOperations(brackets);
+        for(var i=0;i<brackets.length;i++){
+            console.log(brackets[i].join(''));
+        }
+        console.log(brackets);
     }
 
+
+    /*
+     Get data into brackets
+     Example: (2*(a+b)-(a-b/2))+2
+     (a-b/2)
+     (a+b)
+     (2*(a+b)-(a-b/2))
+
+     return array of brackets
+     */
     function getBrackets(data){
         var open_br = [];
         var close_br = [];
@@ -218,8 +233,6 @@ $(document).ready(function(){
                 close_br.push(i);
             }
         }
-        console.log('OPEN - '+open_br);
-        console.log('CLOSE - '+close_br);
         var count = open_br.length;
 
         for(var i=0;i<count;i++){
@@ -230,10 +243,7 @@ $(document).ready(function(){
                     break;
                 }
             }
-            console.log(open_br[open_br.length-1]);
-            console.log(z);
             result.push(data.slice(open_br[open_br.length-1],z+1));
-            console.log('i = '+i);
 
             //remove elements
             open_br.pop();
@@ -242,10 +252,27 @@ $(document).ready(function(){
                 close_br.splice(index, 1);
             }
         }
-        for(var i=0;i<result.length;i++){
-            console.log(result[i].join(''));
-        }
+        return result;
+    }
 
+    function getBracketsOperations(brackets){
+        var operation_position = function(){
+            id: 0;
+            pos: [];
+        };
+        var op_arrays = [];
+        for (var i = 0; i < brackets.length;i++){
+            var tmp = new operation_position;
+            tmp.id = i;
+            tmp.pos = [];
+            for(var j=0;j<brackets[i].length;j++){
+                if($.inArray(brackets[i][j],operations)>=0){
+                    tmp.pos.push(j);
+                }
+            }
+            op_arrays.push(tmp);
+        }
+        console.log(op_arrays);
     }
 
 

@@ -257,6 +257,7 @@ $(document).ready(function(){
     function getBracketsOperations(brackets){
         var operation_position = function(){
             id: 0;
+            operation: [];
             pos: [];
         };
         var op_arrays = [];
@@ -264,24 +265,41 @@ $(document).ready(function(){
             var tmp = new operation_position;
             tmp.id = i;
             tmp.pos = [];
+            tmp.operation = [];
             for(var j=0;j<brackets[i].length;j++){
                 if($.inArray(brackets[i][j],operations)>=0){
                     tmp.pos.push(j);
+                    tmp.operation.push(brackets[i][j]);
                 }
             }
             op_arrays.push(tmp);
         }
         console.log(op_arrays);
 
-        var simple = ['+','-'];
-        var mul = ['*','/'];
+        var operations_priority = [];
 
-        for(var i = 0; i <op_arrays.length;i++){
-            for(var j = 0; j <op_arrays[i].length;j++){
-                if(op_arrays[i][j]=='+' || op_arrays[i][j]=='-'){
-
+        for(var i = 0; i<op_arrays.length;i++){
+            var prev = '';
+            var tmp = '';
+            var next = '';
+            var tmp_arr = new Array(op_arrays.length);
+            var count = 1;
+            var max_count = 1;
+            for (var j = 1; j<op_arrays[i].pos.length-1;j++){
+                tmp = op_arrays[i].operation[j];
+                prev = op_arrays[i].operation[j-1];
+                next = op_arrays[i].operation[j+1];
+                if(tmp=="-"||tmp=="+"){
+                    if(prev=="-"||prev=="+"){
+                        tmp_arr[j] = count++;
+                        tmp_arr[j-1] = count;
+                    }else if(prev=="*"||prev=="/"){
+                        tmp_arr[j] = count;
+                        tmp_arr[j-1] = count++;
+                    }
                 }
             }
+            operations_priority.push(tmp_arr);
         }
     }
 });

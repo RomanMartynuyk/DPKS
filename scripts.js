@@ -250,54 +250,62 @@ $(document).ready(function(){
         }
         return result;
     }
-
+    /*
+    * Получаем массив вместимого в скобках
+    * превращаем этот массив а массив операций
+    * каждый массив оппераций - это Обьект с полями:
+    * айди
+    * operations - тип операции + - / *
+    * pos - позиция операции
+    * priority - приоритет ее выполнения относительно текущих скобок
+    */
     function getBracketsOperations(brackets){
         var op_arrays1 = tranform_operations(brackets);
         var op_arrays = op_arrays1;
+        // Берем массивы операций
         for(var i = 0; i<op_arrays.length;i++){
-            var tmp_op = op_arrays[i];
-            var t = 10;
+            var tmp_op = op_arrays[i]; // текущий массив операций
             var pos = 1;
-            while(op_arrays[i].operation.length != 0){
+            //пока есть операции
+            while(tmp_op.operation.length != 0) {
                 var flag = false;
-                for(var j = 0; j< tmp_op.operation.length;j++){
-                    if((tmp_op.operation[j]=='+'  || tmp_op.operation[j]=='-')){
-
-                        if(tmp_op.operation[j+1]=='*' || tmp_op.operation[j+1]=='/'){
-                            tmp_op.priority[j] = 0;
+                //берем оставшиеся операции
+                for (var j = 0; j < tmp_op.operation.length; j++) {
+                    //если + или -
+                    if ((tmp_op.operation[j] == '+' || tmp_op.operation[j] == '-')) {
+                        //если + или - И след операция имеет выше приоритет
+                        if (tmp_op.operation[j + 1] == '*' || tmp_op.operation[j + 1] == '/') {
+                            tmp_op.priority[tmp_op.pos.indexOf(op_arrays[i].pos[j])] = 0; //приоритет будет выщитан при след заходе
                             flag = false;
-                        }else if(!flag){
-                            tmp_op.priority[j] = pos;
+                        } else if (!flag) {
+                            tmp_op.priority[tmp_op.pos.indexOf(op_arrays[i].pos[j])] = pos;
                             flag = true;
                             continue;
-                        }else{
-                            tmp_op.priority[j] = -1;
+                        } else {
+                            tmp_op.priority[tmp_op.pos.indexOf(op_arrays[i].pos[j])] = -1; //приоритет будет выщитан при след заходе
                         }
-
-                        if(flag){
+                        if (flag) {
                             flag = false;
                         }
-                    }else{
-                        if(tmp_op.operation[j-1]=='*' || tmp_op.operation[j-1]=='/'){
-                            tmp_op.priority[j-1] = 0;
+                    } else {
+                        //Если операция * или /
+                        if (tmp_op.operation[j - 1] == '*' || tmp_op.operation[j - 1] == '/') {
+                            tmp_op.priority[j - 1] = 0;
                         }
                         tmp_op.priority[j] = pos;
                         flag = true;
                     }
                 }
                 pos++;
-                t--;
-                var ln = tmp_op.operation.length;
-                for(var k=0; k<ln;k++){
+                for(var k=0; k<tmp_op.operation.length;k++){
                     if(tmp_op.priority[k]>0 ){
                         tmp_op.operation.remove(k);
                         tmp_op.pos.remove(k);
                     }
                 }
+                console.log(tmp_op.priority);
             }
         }
-
-        console.log(op_arrays1);
 
 
     }
@@ -323,6 +331,7 @@ $(document).ready(function(){
                 if($.inArray(brackets[i][j],operations)>=0){
                     tmp.pos.push(j);
                     tmp.operation.push(brackets[i][j]);
+                    tmp.priority.push(null);
                 }
             }
             op_arrays.push(tmp);

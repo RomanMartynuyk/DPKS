@@ -261,13 +261,14 @@ $(document).ready(function(){
     */
     function getBracketsOperations(brackets){
         var op_arrays1 = tranform_operations(brackets);
-        var op_arrays = op_arrays1;
+        var op_arrays = tranform_operations(brackets);
         // Берем массивы операций
         for(var i = 0; i<op_arrays.length;i++){
             var tmp_op = op_arrays[i]; // текущий массив операций
             var pos = 1;
             //пока есть операции
             while(tmp_op.operation.length != 0) {
+
                 var flag = false;
                 //берем оставшиеся операции
                 for (var j = 0; j < tmp_op.operation.length; j++) {
@@ -275,14 +276,14 @@ $(document).ready(function(){
                     if ((tmp_op.operation[j] == '+' || tmp_op.operation[j] == '-')) {
                         //если + или - И след операция имеет выше приоритет
                         if (tmp_op.operation[j + 1] == '*' || tmp_op.operation[j + 1] == '/') {
-                            tmp_op.priority[tmp_op.pos.indexOf(op_arrays[i].pos[j])] = 0; //приоритет будет выщитан при след заходе
+                            tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = 0; //приоритет будет выщитан при след заходе
                             flag = false;
                         } else if (!flag) {
-                            tmp_op.priority[tmp_op.pos.indexOf(op_arrays[i].pos[j])] = pos;
+                            tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
                             flag = true;
                             continue;
                         } else {
-                            tmp_op.priority[tmp_op.pos.indexOf(op_arrays[i].pos[j])] = -1; //приоритет будет выщитан при след заходе
+                            tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = -1; //приоритет будет выщитан при след заходе
                         }
                         if (flag) {
                             flag = false;
@@ -297,10 +298,10 @@ $(document).ready(function(){
                     }
                 }
                 pos++;
+                var tmp_remove = [];
                 for(var k=0; k<tmp_op.operation.length;k++){
                     if(tmp_op.priority[k]>0 ){
-                        tmp_op.operation.remove(k);
-                        tmp_op.pos.remove(k);
+                        tmp_remove.push(k);
                     }
                 }
                 console.log(tmp_op.priority);
@@ -308,6 +309,16 @@ $(document).ready(function(){
         }
 
 
+    }
+
+    function getOpPos(oper, tmp){
+        var value;
+        for (var i = 0; i < oper.pos.length; i++){
+            if(oper.pos[i] == tmp){
+                value =  i;
+            }
+        }
+        return value;
     }
 
     function tranform_operations(brackets){

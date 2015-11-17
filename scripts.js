@@ -271,50 +271,59 @@ $(document).ready(function(){
             //пока есть операции
             while(end_flag) {
                 var flag = false;
+                var mflag = false;
                 if(!end_flag1){
                     end_flag = false;
                 }
                 //берем оставшиеся операции
                 for (var j = 0; j < tmp_op.operation.length; j++) {
+                    console.log(tmp_op.operation.length);
                     //если + или -
                     if ((tmp_op.operation[j] == '+' || tmp_op.operation[j] == '-')&&tmp_op.priority[j]<1) {
                         //если + или - И след операция имеет выше приоритет
                         if (tmp_op.operation[j + 1] == '*' || tmp_op.operation[j + 1] == '/') {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = 0; //приоритет будет выщитан при след заходе
                             flag = false;
-                            end_flag = true;
+                            end_flag1 = true;
                         } else if (!flag) {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
                             flag = true;
-                            end_flag = true;
+                            end_flag1 = true;
                             continue;
                         } else {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = -1; //приоритет будет выщитан при след заходе
-                            end_flag = true;
+                            end_flag1 = true;
                         }
                         if (flag) {
                             flag = false;
                         }
                     }else if(tmp_op.operation[j] == '*' || tmp_op.operation[j] == '/'&&tmp_op.priority[j]<1){
                         //Если операция * или /
-                        if (tmp_op.operation[j - 1] == '*' || tmp_op.operation[j - 1] == '/') {
-                            tmp_op.priority[j - 1] = 0;
+                        if (!mflag) {
+                            tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
+                            mflag = true;
+                            end_flag1 = true;
+                            continue;
+                        } else {
+                            tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = -1; //приоритет будет выщитан при след заходе
+                            end_flag1 = true;
                         }
-                        tmp_op.priority[j] = pos;
-                        flag = true;
-                    }else{
-                        var countHightP = 0;
-                        for (var t = 0; t < tmp_op.priority.length; t++) {
-                            if(tmp_op.priority[t]<0){
-                                countHightP++;
-                                console.log(tmp_op.pos[t]);
-                            }
+                        if (mflag) {
+                            mflag = false;
                         }
-                        if(countHightP>0){
-                            end_flag1 = false;
-                        }
-                        console.log(' ');
                     }
+                }
+                var countHightP = 0;
+                for (var t = 0; t < tmp_op.priority.length; t++) {
+                    if(tmp_op.priority[t]<0){
+                        countHightP++;
+                        console.log(tmp_op.pos[t]);
+                    }
+                };
+                if(countHightP>0){
+                    end_flag = true;
+                }else{
+                    end_flag = false;
                 }
                 pos++;
             }

@@ -285,6 +285,10 @@ $(document).ready(function(){
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = 0; //приоритет будет выщитан при след заходе
                             flag = false;
                             end_flag1 = true;
+                        }else if (tmp_op.operation[j - 1] == '*' || tmp_op.operation[j - 1] == '/') {
+                            tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = 0; //приоритет будет выщитан при след заходе
+                            flag = false;
+                            end_flag1 = true;
                         } else if (!flag) {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
                             flag = true;
@@ -297,7 +301,7 @@ $(document).ready(function(){
                         if (flag) {
                             flag = false;
                         }
-                    }else if(tmp_op.operation[j] == '*' || tmp_op.operation[j] == '/'&&tmp_op.priority[j]<1){
+                    }else if((tmp_op.operation[j] == '*' || tmp_op.operation[j] == '/')&&tmp_op.priority[j]<1){
                         //Если операция * или /
                         if (!mflag) {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
@@ -317,7 +321,6 @@ $(document).ready(function(){
                 for (var t = 0; t < tmp_op.priority.length; t++) {
                     if(tmp_op.priority[t]<0){
                         countHightP++;
-                        console.log(tmp_op.pos[t]);
                     }
                 };
                 if(countHightP>0){

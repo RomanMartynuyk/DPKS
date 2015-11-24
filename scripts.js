@@ -262,12 +262,15 @@ $(document).ready(function(){
     function getBracketsOperations(brackets){
         var op_arrays1 = tranform_operations(brackets);
         var op_arrays = tranform_operations(brackets);
+        console.log(op_arrays);
         // Берем массивы операций
         for(var i = 0; i<op_arrays.length;i++){
             var tmp_op = op_arrays[i]; // текущий массив операций
             var pos = 1;
             var end_flag = true;
             var end_flag1 = true;
+            var stop = 0;
+            var zero_counter = 0;
             //пока есть операции
             while(end_flag) {
                 var flag = false;
@@ -277,29 +280,35 @@ $(document).ready(function(){
                 }
                 //берем оставшиеся операции
                 for (var j = 0; j < tmp_op.operation.length; j++) {
-                    console.log(tmp_op.operation.length);
                     //если + или -
                     if ((tmp_op.operation[j] == '+' || tmp_op.operation[j] == '-')&&tmp_op.priority[j]<1) {
+
                         //если + или - И след операция имеет выше приоритет
                         if (tmp_op.operation[j + 1] == '*' || tmp_op.operation[j + 1] == '/') {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = 0; //приоритет будет выщитан при след заходе
                             flag = false;
                             end_flag1 = true;
+                            mflag = false;
                         }else if (tmp_op.operation[j - 1] == '*' || tmp_op.operation[j - 1] == '/') {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = 0; //приоритет будет выщитан при след заходе
                             flag = false;
                             end_flag1 = true;
+                            mflag = false;
+                            console.log('here');
                         } else if (!flag) {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
                             flag = true;
                             end_flag1 = true;
+                            mflag = false;
                             continue;
                         } else {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = -1; //приоритет будет выщитан при след заходе
                             end_flag1 = true;
+                            mflag = false;
                         }
                         if (flag) {
                             flag = false;
+                            mflag = false;
                         }
                     }else if((tmp_op.operation[j] == '*' || tmp_op.operation[j] == '/')&&tmp_op.priority[j]<1){
                         //Если операция * или /
@@ -307,10 +316,12 @@ $(document).ready(function(){
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
                             mflag = true;
                             end_flag1 = true;
+                            flag = false;
                             continue;
                         } else {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = -1; //приоритет будет выщитан при след заходе
                             end_flag1 = true;
+                            flag = false;
                         }
                         if (mflag) {
                             mflag = false;
@@ -319,8 +330,11 @@ $(document).ready(function(){
                 }
                 var countHightP = 0;
                 for (var t = 0; t < tmp_op.priority.length; t++) {
-                    if(tmp_op.priority[t]<0){
+                    if(tmp_op.priority[t]<=0){
                         countHightP++;
+                        if(tmp_op.priority[t]==0){
+                            zero_counter++;
+                        }
                     }
                 };
                 if(countHightP>0){
@@ -329,8 +343,137 @@ $(document).ready(function(){
                     end_flag = false;
                 }
                 pos++;
+                stop++;
+
+                /*
+                * Если у нас остаются нули, перед умножениями, разбиваем на обьект
+                * У него есть позиция, приоритет перед ним, и после него
+                */
+                if(zero_counter>500){
+                    var zero_object_ex = function(){
+                        pos: [];
+                        before: [];
+                        tmp: [];
+                        next: [];
+                    };
+                    var zero_object = new zero_object_ex;
+                    zero_object.pos = [];
+                    zero_object.before = [];
+                    zero_object.tmp = [];
+                    zero_object.next = [];
+
+                    var pos_count = 0;
+                    //Ищем все нули, их позиции, что бы потом между этими позициями найти макс позицию
+                    for(var i = 0; i< tmp_op.priority.length; i++){
+                        if(tmp_op.priority[i]==0){
+                            zero_object.pos[pos_count] = i;
+                            pos_count++;
+                        }
+                    }
+
+                    //ищем макс приоритет между
+                    for (var i = 0; i<zero_object.pos.length; i++){
+                        //Для первого элемента если в начале и нет
+                        if(zero_object.pos[0]==0 && i == 0){
+                            zero_object.before[i] = 0;
+                            if(zero_object.pos[1]){
+                                var max_m_s = tmp_op.priority[zero_object.pos[0]+1];
+                                for(var j = zero_object.pos[i]; j<zero_object.pos[1]-1; j++){
+                                    if(tmp_op.priority[j]>max_m_s){
+                                        max_m_s = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.next[0] = max_m_s+1;
+                            }else{
+                                var max_m_sl = tmp_op.priority[zero_object.pos[0]+1];
+                                for(var j = zero_object.pos[0]; j<tmp_op.priority[tmp_op.priority.length]; j++){
+                                    if(tmp_op.priority[j]>max_m_sl){
+                                        max_m_sl = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.next[0] = max_m_sl+1;
+                            }
+                        }else if(i == 0){
+                            var max_s = tmp_op.priority[0];
+                            for(var j = 0; j<zero_object.pos[i]; j++){
+                                if(tmp_op.priority[j]>max_s){
+                                    max_s = tmp_op.priority[j];
+                                }
+                            }
+                            zero_object.before[0] = max_s+1;
+
+                            if(zero_object.pos[1]){
+                                var max_m_s = tmp_op.priority[zero_object.pos[0]+1];
+                                for(var j = zero_object.pos[i]; j<zero_object.pos[1]-1; j++){
+                                    if(tmp_op.priority[j]>max_m_s){
+                                        max_m_s = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.next[0] = max_m_s+1;
+                            }
+                        }else{
+                            //Для последствующих элементов
+                            //Если есть следующий (не последний)
+                            if(zero_object.pos[i+1]){
+                                //Находим максимальный между текущим и предыдущим (бефор)
+                                var max_m_b = tmp_op.priority[zero_object.pos[i-1]+1];
+                                for(var j = zero_object.pos[i-1]; j<zero_object.pos[i]; j++){
+                                    if(tmp_op.priority[j]>max_m_b){
+                                        max_m_b = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.before[i] = max_m_b+1;
+                                //Находим максимальный между текущим и след (некст)
+                                var max_m_n = tmp_op.priority[zero_object.pos[i]+1];
+                                for(var j = zero_object.pos[i]; j<zero_object.pos[i+1]-1; j++){
+                                    if(tmp_op.priority[j]>max_m_n){
+                                        max_m_n = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.next[i] = max_m_n+1;
+                            }else{
+                                //Находим максимальный между последним и предыдущим (бефор)
+                                var max_l_b = tmp_op.priority[zero_object.pos[i-1]+1];
+                                for(var j = zero_object.pos[i-1]; j<zero_object.pos[i]; j++){
+                                    if(tmp_op.priority[j]>max_l_b){
+                                        max_l_b = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.before[i] = max_l_b+1;
+                                zero_object.next[i] = 0;
+                            }
+                        }
+                    }
+                    console.log(zero_object);
+
+                    //Выбираем большее значение с пред или после
+                    for(var i = 0; i<zero_object.pos.length; i++){
+                        var max_bn = 0;
+                        if(zero_object.before[i]>zero_object.next[i]){
+                            max_bn = zero_object.before[i];
+                        }else{
+                            max_bn = zero_object.next[i];
+                        }
+                        zero_object.tmp[i] = max_bn;
+                    }
+
+                    //Если есть рядом стоящие с одинаковым приоритетом
+                    var o_flag = false;
+                    for(var i = 0; i<zero_object.tmp.length; i++){
+                        if(zero_object.tmp[i]==zero_object.tmp[i-1]){
+                            zero_object.tmp[i]++;
+                        }
+                    }
+
+
+                    for(var i = 0; i<zero_object.pos.length; i++){
+                        tmp_op.priority[zero_object.pos[i]] = zero_object.tmp[i];
+                    }
+                    break;
+                }
             }
             console.log(tmp_op.priority);
+
         }
 
 
@@ -347,9 +490,6 @@ $(document).ready(function(){
     }
 
     function tranform_operations(brackets){
-        for (var i = 0; i < brackets.length;i++){
-            console.log(brackets[i].join(''));
-        }
         var operation_position = function(){
             id: 0;
             operation: [];
@@ -401,14 +541,14 @@ $(document).ready(function(){
             }
             for(var k =0; k<div.length;k++){
                 op_arrays[i].operation[div[k]] = '*';
-                brackets[i][op_arrays[i].pos[div[k]]] = '*1_';
+                brackets[i][op_arrays[i].pos[div[k]]] = '*';
             }
             for(var k =0; k<sub.length;k++){
                 op_arrays[i].operation[sub[k]] = '+';
-                brackets[i][op_arrays[i].pos[sub[k]]] = '+_';
+                brackets[i][op_arrays[i].pos[sub[k]]] = '+';
             }
         }
-
+        console.log()
         return op_arrays;
     }
 

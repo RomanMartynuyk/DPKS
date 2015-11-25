@@ -440,11 +440,16 @@ $(document).ready(function(){
                                     }
                                 }
                                 zero_object.before[i] = max_l_b+1;
-                                zero_object.next[i] = 0;
+                                var max_l_b_n = tmp_op.priority[zero_object.pos[i]+1];
+                                for(var j = zero_object.pos[i]; j<tmp_op.priority.length; j++){
+                                    if(tmp_op.priority[j]>max_l_b_n){
+                                        max_l_b_n = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.next[i] = max_l_b_n+1;
                             }
                         }
                     }
-                    console.log(zero_object);
 
                     //Выбираем большее значение с пред или после
                     for(var i = 0; i<zero_object.pos.length; i++){
@@ -456,14 +461,65 @@ $(document).ready(function(){
                         }
                         zero_object.tmp[i] = max_bn;
                     }
-
+                    console.log('Before');
+                    console.log(zero_object.tmp);
                     //Если есть рядом стоящие с одинаковым приоритетом
-                    var o_flag = false;
-                    for(var i = 0; i<zero_object.tmp.length; i++){
-                        if(zero_object.tmp[i]==zero_object.tmp[i-1]){
-                            zero_object.tmp[i]++;
+                    var zero_flag = true;
+                    var tmp_zero = zero_object.clone();
+                    tmp_zero.delete = [];
+                    while(zero_flag){
+                        tmp_zero.delete = [];
+                        for(var i = 0; i<tmp_zero.tmp.length; i++){
+                            if(tmp_zero.tmp[i]==tmp_zero.tmp[i+1] && $.inArray(tmp_zero.pos[i],tmp_zero.delete)==-1){
+                                tmp_zero.delete.push(tmp_zero.pos[i+1]);
+                            }else{
+                                if(tmp_zero.tmp.length == 1){
+                                    for(var j =0; j<zero_object.tmp.length;j++){
+                                        if(zero_object.pos[j]==tmp_zero.pos[i]){
+                                            zero_object.tmp[j]++;
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        console.log('delete');
+                        console.log(tmp_zero.delete);
+                        console.log('pos');
+                        console.log(tmp_zero.pos);
+                        console.log('length'+tmp_zero.tmp.length);
+
+                        var g = tmp_zero.tmp.length;
+
+                        for(var j = 0; j<g;j++){
+                            for(var i = 0; i<tmp_zero.tmp.length; i++){
+                                if($.inArray(tmp_zero.pos[i],tmp_zero.delete)==-1){
+                                    console.log('this - '+tmp_zero.pos[i]);
+                                    tmp_zero.tmp.splice(i,1);
+                                    tmp_zero.pos.splice(i,1);
+                                    continue;
+                                }else{
+                                    console.log('not this - '+tmp_zero.pos[i]);
+                                }
+                            }
+                        }
+
+
+
+
+                        for(var i = 0; i<tmp_zero.pos.length; i++){
+                            for(var j =0; j<zero_object.tmp.length;j++){
+                                if(zero_object.pos[j]==tmp_zero.pos[i]){
+                                    zero_object.tmp[j]++;
+                                }
+                            }
+                        }
+                        console.log(zero_object.tmp);
+                        if(tmp_zero.tmp.length == 0){
+                            zero_flag = false;
+                        }
+                        console.log('___________________________________');
                     }
+
 
 
                     for(var i = 0; i<zero_object.pos.length; i++){
@@ -556,5 +612,15 @@ $(document).ready(function(){
         var rest = this.slice((to || from) + 1 || this.length);
         this.length = from < 0 ? this.length + from : from;
         return this.push.apply(this, rest);
+    };
+
+    Object.prototype.clone = function() {
+        var newObj = (this instanceof Array) ? [] : {};
+        for (i in this) {
+            if (i == 'clone') continue;
+            if (this[i] && typeof this[i] == "object") {
+                newObj[i] = this[i].clone();
+            } else newObj[i] = this[i]
+        } return newObj;
     };
 });

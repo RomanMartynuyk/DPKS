@@ -294,7 +294,6 @@ $(document).ready(function(){
                             flag = false;
                             end_flag1 = true;
                             mflag = false;
-                            console.log('here');
                         } else if (!flag) {
                             tmp_op.priority[getOpPos(op_arrays1[i], tmp_op.pos[j])] = pos;
                             flag = true;
@@ -401,8 +400,6 @@ $(document).ready(function(){
                                 }
                             }
                             zero_object.before[0] = max_s+1;
-
-                            if(zero_object.pos[1]){
                                 var max_m_s = tmp_op.priority[zero_object.pos[0]+1];
                                 for(var j = zero_object.pos[i]; j<zero_object.pos[1]-1; j++){
                                     if(tmp_op.priority[j]>max_m_s){
@@ -410,7 +407,7 @@ $(document).ready(function(){
                                     }
                                 }
                                 zero_object.next[0] = max_m_s+1;
-                            }
+
                         }else{
                             //Для последствующих элементов
                             //Если есть следующий (не последний)
@@ -440,7 +437,7 @@ $(document).ready(function(){
                                     }
                                 }
                                 zero_object.before[i] = max_l_b+1;
-                                var max_l_b_n = tmp_op.priority[zero_object.pos[i]+1];
+                                var max_l_b_n = 0;
                                 for(var j = zero_object.pos[i]; j<tmp_op.priority.length; j++){
                                     if(tmp_op.priority[j]>max_l_b_n){
                                         max_l_b_n = tmp_op.priority[j];
@@ -454,6 +451,7 @@ $(document).ready(function(){
                     //Выбираем большее значение с пред или после
                     for(var i = 0; i<zero_object.pos.length; i++){
                         var max_bn = 0;
+                        console.log(zero_object);
                         if(zero_object.before[i]>zero_object.next[i]){
                             max_bn = zero_object.before[i];
                         }else{
@@ -461,8 +459,6 @@ $(document).ready(function(){
                         }
                         zero_object.tmp[i] = max_bn;
                     }
-                    console.log('Before');
-                    console.log(zero_object.tmp);
                     //Если есть рядом стоящие с одинаковым приоритетом
                     var zero_flag = true;
                     var tmp_zero = zero_object.clone();
@@ -482,23 +478,16 @@ $(document).ready(function(){
                                 }
                             }
                         }
-                        console.log('delete');
-                        console.log(tmp_zero.delete);
-                        console.log('pos');
-                        console.log(tmp_zero.pos);
-                        console.log('length'+tmp_zero.tmp.length);
 
                         var g = tmp_zero.tmp.length;
 
                         for(var j = 0; j<g;j++){
                             for(var i = 0; i<tmp_zero.tmp.length; i++){
                                 if($.inArray(tmp_zero.pos[i],tmp_zero.delete)==-1){
-                                    console.log('this - '+tmp_zero.pos[i]);
                                     tmp_zero.tmp.splice(i,1);
                                     tmp_zero.pos.splice(i,1);
                                     continue;
                                 }else{
-                                    console.log('not this - '+tmp_zero.pos[i]);
                                 }
                             }
                         }
@@ -513,11 +502,9 @@ $(document).ready(function(){
                                 }
                             }
                         }
-                        console.log(zero_object.tmp);
                         if(tmp_zero.tmp.length == 0){
                             zero_flag = false;
                         }
-                        console.log('___________________________________');
                     }
 
 
@@ -528,6 +515,15 @@ $(document).ready(function(){
                     break;
                 }
             }
+            var max_p = 0;
+            var max_p_pos = 0;
+            for(var i = 0; i<tmp_op.priority.length;i++){
+                if(tmp_op.priority[i]>max_p){
+                    max_p = tmp_op.priority[i];
+                    max_p_pos = i;
+                }
+            }
+          //  tmp_op.priority[max_p_pos] = tmp_op.priority[max_p_pos]-1;
             console.log(tmp_op.priority);
 
         }

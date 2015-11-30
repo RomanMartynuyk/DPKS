@@ -374,6 +374,7 @@ $(document).ready(function(){
                     for (var i = 0; i<zero_object.pos.length; i++){
                         //Для первого элемента если в начале и нет
                         if(zero_object.pos[0]==0 && i == 0){
+
                             zero_object.before[i] = 0;
                             if(zero_object.pos[1]){
                                 var max_m_s = tmp_op.priority[zero_object.pos[0]+1];
@@ -400,13 +401,14 @@ $(document).ready(function(){
                                 }
                             }
                             zero_object.before[0] = max_s+1;
-                                var max_m_s = tmp_op.priority[zero_object.pos[0]+1];
-                                for(var j = zero_object.pos[i]; j<zero_object.pos[1]-1; j++){
-                                    if(tmp_op.priority[j]>max_m_s){
-                                        max_m_s = tmp_op.priority[j];
-                                    }
+
+                            var max_m_s = tmp_op.priority[zero_object.pos[0]];
+                            for(var j = zero_object.pos[i]; j<zero_object.pos[1]-1; j++){
+                                if(tmp_op.priority[j]>max_m_s){
+                                    max_m_s = tmp_op.priority[j];
                                 }
-                                zero_object.next[0] = max_m_s+1;
+                            }
+                            zero_object.next[0] = max_m_s+1;
 
                         }else{
                             //Для последствующих элементов
@@ -458,7 +460,10 @@ $(document).ready(function(){
                             max_bn = zero_object.next[i];
                         }
                         zero_object.tmp[i] = max_bn;
+                        console.log(zero_object.before);
+                        console.log(zero_object.next);
                     }
+
                     //Если есть рядом стоящие с одинаковым приоритетом
                     var zero_flag = true;
                     var tmp_zero = zero_object.clone();
@@ -523,7 +528,7 @@ $(document).ready(function(){
                     max_p_pos = i;
                 }
             }
-          //  tmp_op.priority[max_p_pos] = tmp_op.priority[max_p_pos]-1;
+
             console.log(tmp_op.priority);
 
         }

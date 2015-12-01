@@ -262,7 +262,6 @@ $(document).ready(function(){
     function getBracketsOperations(brackets){
         var op_arrays1 = tranform_operations(brackets);
         var op_arrays = tranform_operations(brackets);
-        console.log(op_arrays);
         // Берем массивы операций
         for(var i = 0; i<op_arrays.length;i++){
             var tmp_op = op_arrays[i]; // текущий массив операций
@@ -373,28 +372,8 @@ $(document).ready(function(){
                     //ищем макс приоритет между
                     for (var i = 0; i<zero_object.pos.length; i++){
                         //Для первого элемента если в начале и нет
-                        if(zero_object.pos[0]==0 && i == 0){
-
-                            zero_object.before[i] = 0;
-                            if(zero_object.pos[1]){
-                                var max_m_s = tmp_op.priority[zero_object.pos[0]+1];
-                                for(var j = zero_object.pos[i]; j<zero_object.pos[1]-1; j++){
-                                    if(tmp_op.priority[j]>max_m_s){
-                                        max_m_s = tmp_op.priority[j];
-                                    }
-                                }
-                                zero_object.next[0] = max_m_s+1;
-                            }else{
-                                var max_m_sl = tmp_op.priority[zero_object.pos[0]+1];
-                                for(var j = zero_object.pos[0]; j<tmp_op.priority[tmp_op.priority.length]; j++){
-                                    if(tmp_op.priority[j]>max_m_sl){
-                                        max_m_sl = tmp_op.priority[j];
-                                    }
-                                }
-                                zero_object.next[0] = max_m_sl+1;
-                            }
-                        }else if(i == 0){
-                            var max_s = tmp_op.priority[0];
+                        if(i == 0){
+                            var max_s = tmp_op.priority[zero_object.pos[0]];
                             for(var j = 0; j<zero_object.pos[i]; j++){
                                 if(tmp_op.priority[j]>max_s){
                                     max_s = tmp_op.priority[j];
@@ -403,12 +382,24 @@ $(document).ready(function(){
                             zero_object.before[0] = max_s+1;
 
                             var max_m_s = tmp_op.priority[zero_object.pos[0]];
-                            for(var j = zero_object.pos[i]; j<zero_object.pos[1]-1; j++){
-                                if(tmp_op.priority[j]>max_m_s){
-                                    max_m_s = tmp_op.priority[j];
+                            if(zero_object.pos[i+1]){
+                                for(var j = zero_object.pos[i]; j<zero_object.pos[1]; j++){
+                                    if(tmp_op.priority[j]>max_m_s){
+                                        max_m_s = tmp_op.priority[j];
+                                    }
                                 }
+                                zero_object.next[0] = max_m_s+1;
+
+                            }else{
+                                for(var j = zero_object.pos[0]; j<tmp_op.priority.length; j++){
+                                    console.log(tmp_op.priority[j]);
+                                    if(tmp_op.priority[j]>max_m_s){
+                                        max_m_s = tmp_op.priority[j];
+                                    }
+                                }
+                                zero_object.next[0] = max_m_s+1;
                             }
-                            zero_object.next[0] = max_m_s+1;
+
 
                         }else{
                             //Для последствующих элементов
@@ -453,15 +444,12 @@ $(document).ready(function(){
                     //Выбираем большее значение с пред или после
                     for(var i = 0; i<zero_object.pos.length; i++){
                         var max_bn = 0;
-                        console.log(zero_object);
                         if(zero_object.before[i]>zero_object.next[i]){
                             max_bn = zero_object.before[i];
                         }else{
                             max_bn = zero_object.next[i];
                         }
                         zero_object.tmp[i] = max_bn;
-                        console.log(zero_object.before);
-                        console.log(zero_object.next);
                     }
 
                     //Если есть рядом стоящие с одинаковым приоритетом
@@ -471,51 +459,19 @@ $(document).ready(function(){
                     while(zero_flag){
                         tmp_zero.delete = [];
                         for(var i = 0; i<tmp_zero.tmp.length; i++){
-                            if(tmp_zero.tmp[i]==tmp_zero.tmp[i+1] && $.inArray(tmp_zero.pos[i],tmp_zero.delete)==-1){
-                                tmp_zero.delete.push(tmp_zero.pos[i+1]);
+                            if(tmp_zero.tmp[i]==tmp_zero.tmp[i+1]){
+                                tmp_zero.tmp[i+1]++;
                             }else{
-                                if(tmp_zero.tmp.length == 1){
-                                    for(var j =0; j<zero_object.tmp.length;j++){
-                                        if(zero_object.pos[j]==tmp_zero.pos[i]){
-                                            zero_object.tmp[j]++;
-                                        }
-                                    }
-                                }
+                                zero_flag = false;
                             }
                         }
 
-                        var g = tmp_zero.tmp.length;
-
-                        for(var j = 0; j<g;j++){
-                            for(var i = 0; i<tmp_zero.tmp.length; i++){
-                                if($.inArray(tmp_zero.pos[i],tmp_zero.delete)==-1){
-                                    tmp_zero.tmp.splice(i,1);
-                                    tmp_zero.pos.splice(i,1);
-                                    continue;
-                                }else{
-                                }
-                            }
-                        }
-
-
-
-
-                        for(var i = 0; i<tmp_zero.pos.length; i++){
-                            for(var j =0; j<zero_object.tmp.length;j++){
-                                if(zero_object.pos[j]==tmp_zero.pos[i]){
-                                    zero_object.tmp[j]++;
-                                }
-                            }
-                        }
-                        if(tmp_zero.tmp.length == 0){
-                            zero_flag = false;
-                        }
                     }
 
 
 
                     for(var i = 0; i<zero_object.pos.length; i++){
-                        tmp_op.priority[zero_object.pos[i]] = zero_object.tmp[i];
+                        tmp_op.priority[zero_object.pos[i]] = tmp_zero.tmp[i];
                     }
                     break;
                 }
